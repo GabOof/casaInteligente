@@ -1,5 +1,5 @@
 const mqtt = require("mqtt");
-const { connectToDb } = require("./database");
+const { connectToDb } = require("../database/database");
 const { mqttHost, heaterTopic } = require("../config/mqttConfig");
 
 const client = mqtt.connect(mqttHost);
