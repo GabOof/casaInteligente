@@ -1,69 +1,67 @@
 const { MongoClient } = require("mongodb");
-const uri = "mongodb://localhost:27017"; // Substitua pelo seu URI de conexão
 
+const uri = "mongodb://localhost:27017"; // URI do MongoDB
 let db;
 
 async function connectToDb() {
   try {
     const client = new MongoClient(uri);
     await client.connect();
-    db = client.db("casaInteligente");
+    db = client.db("casaInteligente"); // Aqui estamos atribuindo db
     console.log("Conectado ao MongoDB");
   } catch (err) {
     console.error("Erro ao conectar ao MongoDB", err);
-    throw err;
+    throw err; // Repassando erro para interromper a execução
   }
 }
 
-// Função para registrar a temperatura
 async function storeTemperature(temperature) {
   try {
-    const collection = db.collection("temperatures");
+    const collection = db.collection("temperatures"); // Aqui você acessa a coleção
     await collection.insertOne({
       value: temperature,
       timestamp: new Date(),
     });
-    console.log(`Temperatura registrada no banco de dados: ${temperature}`);
+    console.log(`Temperatura registrada: ${temperature}`);
   } catch (error) {
-    console.error("Erro ao registrar a temperatura:", error);
+    console.error("Erro ao registrar temperatura", error);
   }
 }
 
-// Função para atualizar o status do aquecedor
 async function updateHeaterStatus(status) {
   try {
-    const collection = db.collection("heaters");
-    await collection.insertOne({ status: status, timestamp: new Date() });
+    const collection = db.collection("heaters"); // Aqui você acessa a coleção
+    await collection.insertOne({ status, timestamp: new Date() });
     console.log(`Status do aquecedor atualizado para: ${status}`);
   } catch (error) {
-    console.error("Erro ao atualizar o status do aquecedor", error);
-    throw error; // Re-throw the error to be caught by the controller
+    console.error("Erro ao atualizar status do aquecedor", error);
   }
 }
 
-// Função para obter o status do aquecedor (último status)
 async function getHeaterStatus() {
-  const collection = db.collection("heaters");
-  const status = await collection.findOne({}, { sort: { timestamp: -1 } }); // Ordena por timestamp, pegando o mais recente
-  return status ? status.status : "Desconhecido"; // Retorna o status ou "Desconhecido" caso não haja status
+  try {
+    const collection = db.collection("heaters");
+    const status = await collection.findOne({}, { sort: { timestamp: -1 } });
+    return status ? status.status : "Desconhecido";
+  } catch (error) {
+    console.error("Erro ao obter status do aquecedor", error);
+  }
 }
 
-// Função para obter a temperatura
 async function getTemperature() {
   try {
     const collection = db.collection("temperatures");
-    const temp = await collection.findOne({}, { sort: { _id: -1 } }); // Obtém o último documento de temperatura
-    return temp ? temp.value : null; // Retorna o valor da temperatura ou null caso não exista
+    const temp = await collection.findOne({}, { sort: { timestamp: -1 } });
+    return temp ? temp.value : null;
   } catch (error) {
-    console.error("Erro ao obter a temperatura", error);
-    throw error; // Lança o erro para ser capturado no controller
+    console.error("Erro ao obter temperatura", error);
   }
 }
 
 module.exports = {
   connectToDb,
+  storeTemperature,
+  updateHeaterStatus,
   getHeaterStatus,
   getTemperature,
-  updateHeaterStatus,
-  storeTemperature, // Adicionando a função storeTemperature
 };
