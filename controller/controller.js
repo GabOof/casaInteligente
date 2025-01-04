@@ -1,64 +1,63 @@
 const mqtt = require("mqtt");
-const { connectToDb } = require("../database/database");
-const { mqttHost, heaterTopic } = require("../config/mqttConfig");
+const { mqttHost, mqttTopic, heaterTopic } = require("../config/mqttConfig");
+const {
+  connectToDb,
+  storeTemperature,
+  updateHeaterStatus,
+} = require("../database/database");
 
-const client = mqtt.connect(mqttHost);
+let client; // Definindo a variável 'client' aqui.
 
-// Função para atualizar o status do aquecedor no banco de dados
-async function updateHeaterStatus(status) {
+async function initializeController() {
   try {
-    const collection = db.collection("heaters");
-    await collection.insertOne({ status: status, timestamp: new Date() });
-    console.log(`Status do aquecedor atualizado para: ${status}`);
-  } catch (error) {
-    console.error("Erro ao atualizar o status do aquecedor", error);
-    throw error; // Re-throw the error to be caught by the controller
-  }
-}
+    // Certifique-se de que a conexão ao banco de dados foi estabelecida primeiro.
+    await connectToDb();
+    console.log("Banco de dados conectado");
 
-async function initialize() {
-  try {
-    await connectToDb(); // Aguarda a conexão com o MongoDB
-    console.log("Conectado ao banco de dados");
+    // Inicializando o cliente MQTT depois de garantir que o banco está conectado
+    client = mqtt.connect(mqttHost);
 
     client.on("connect", () => {
       console.log("Controlador conectado ao broker MQTT");
-      client.subscribe("home/temperature");
+      client.subscribe(mqttTopic, (err) => {
+        if (err) {
+          console.error(`Erro ao se inscrever no tópico ${mqttTopic}:`, err);
+        } else {
+          console.log(`Inscrito com sucesso no tópico ${mqttTopic}`);
+        }
+      });
     });
 
     client.on("message", async (topic, message) => {
-      if (topic === "home/temperature") {
-        const { temperature } = JSON.parse(message.toString());
-        console.log(`Temperatura recebida: ${temperature}`);
+      console.log(`Mensagem recebida no tópico ${topic}: ${message}`);
 
+      if (topic === mqttTopic) {
         try {
-          const collection = db.collection("temperatures");
-          // Insira o valor da temperatura no banco de dados
-          await collection.insertOne({
-            value: temperature,
-            timestamp: new Date(),
-          });
-          console.log("Temperatura registrada no banco de dados");
-        } catch (error) {
-          console.error("Erro ao registrar a temperatura", error);
-        }
+          const { temperature } = JSON.parse(message.toString());
+          console.log(`Temperatura processada: ${temperature}`);
 
-        // Lógica de controle do aquecedor
-        if (temperature < 18) {
-          await updateHeaterStatus("on");
-          client.publish(heaterTopic, "on");
-          console.log("Aquecedor ligado");
-        } else if (temperature >= 22) {
-          await updateHeaterStatus("off");
-          client.publish(heaterTopic, "off");
-          console.log("Aquecedor desligado");
+          // Armazenar temperatura no banco
+          await storeTemperature(parseFloat(temperature));
+
+          // Decisão de ligar/desligar o aquecedor
+          if (temperature < 18) {
+            await updateHeaterStatus("on");
+            client.publish(heaterTopic, "on");
+            console.log("Aquecedor ligado");
+          } else if (temperature >= 22) {
+            await updateHeaterStatus("off");
+            client.publish(heaterTopic, "off");
+            console.log("Aquecedor desligado");
+          }
+        } catch (error) {
+          console.error("Erro ao processar mensagem MQTT:", error);
         }
       }
     });
   } catch (error) {
-    console.error("Erro ao inicializar o controlador", error);
-    process.exit(1); // Encerra o processo em caso de erro
+    console.error("Erro ao inicializar controlador", error);
+    process.exit(1);
   }
 }
 
-initialize();
+initializeController();
