@@ -10,5 +10,5 @@ client.on("connect", () => {
     const temperature = (Math.random() * 30 + 10).toFixed(2); // Gera temperatura entre 10°C e 40°C
     client.publish(mqttTopic, JSON.stringify({ temperature }));
     console.log(`Temperatura publicada: ${temperature}`);
-  }, 5000); // Publica a cada 5 segundos
+  }, 10000); // Publica a cada 10 segundos
 });
