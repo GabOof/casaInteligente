@@ -1,5 +1,10 @@
 const mqtt = require("mqtt");
-const { mqttHost, mqttTopic, heaterTopic } = require("../config/mqttConfig");
+const {
+  mqttHost,
+  mqttTopic,
+  heaterTopic,
+  heartbeatTopic,
+} = require("../config/mqttConfig");
 const {
   connectToDb,
   storeTemperature,
@@ -29,12 +34,11 @@ async function initializeController() {
     });
 
     client.on("message", async (topic, message) => {
-      console.log(`Mensagem recebida no tópico ${topic}: ${message}`);
 
       if (topic === mqttTopic) {
         try {
           const { temperature } = JSON.parse(message.toString());
-          console.log(`Temperatura processada: ${temperature}`);
+          console.log(`Temperatura recebida: ${temperature}`);
 
           // Armazenar temperatura no banco
           await storeTemperature(parseFloat(temperature));
@@ -54,6 +58,11 @@ async function initializeController() {
         }
       }
     });
+
+    // Enviando heartbeat para o controlador de backup
+    setInterval(() => {
+      client.publish(heartbeatTopic, "alive");
+    }, 1000); // Envia a cada 1 segundo
   } catch (error) {
     console.error("Erro ao inicializar controlador", error);
     process.exit(1);
