@@ -60,7 +60,7 @@ async function initializeBackupController() {
           await storeTemperature(parseFloat(temperature));
 
           // Decisão de ligar/desligar o aquecedor
-          if (temperature < 18) {
+          if (temperature < 15) {
             await updateHeaterStatus("on");
             client.publish(heaterTopic, "on");
             console.log("Aquecedor ligado");
@@ -121,10 +121,10 @@ function checkMainControllerHealth() {
   // Intervalo para verificar a saúde do controlador principal
   setInterval(() => {
     if (!isMainControllerAlive) {
-      // Verifica se o controlador principal falhou por mais de 30 segundos
+      // Verifica se o controlador principal falhou por mais de 1 segundo
       if (!mainControllerFailureTime) {
         mainControllerFailureTime = Date.now();
-      } else if (Date.now() - mainControllerFailureTime > 30000) {
+      } else if (Date.now() - mainControllerFailureTime > 1000) {
         console.log(
           "Controlador principal inativo há mais de 30 segundos. Iniciando o backup."
         );
@@ -134,7 +134,7 @@ function checkMainControllerHealth() {
       console.log("Controlador principal ativo, aguardando falha.");
       isMainControllerAlive = false; // Reseta a flag após cada intervalo
     }
-  }, 15000); // Verifica a cada 15 segundos
+  }, 1000); // Verifica a cada 1 segundo
 }
 
 // Inicializa a verificação de saúde do controlador principal
