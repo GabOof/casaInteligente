@@ -21,7 +21,17 @@ npm install
 
 Isso irá baixar e instalar as dependências listadas no arquivo `package.json`.
 
-### 2. Iniciar o Middleware (Servidor Express)
+### 2. Iniciar script de geração de chaves de segurança
+
+Para rodar o script, execute:
+
+```bash
+node config/generateKeys.js
+```
+
+Este script irá gerar as chaves de segurança necessárias para a comunicação segura entre os sistemas.
+
+### 3. Iniciar o Middleware (Servidor Express)
 
 Para rodar o servidor Express, execute:
 
@@ -31,7 +41,7 @@ node middleware/server.js
 
 O servidor Express será iniciado na porta 3000 e estará pronto para receber requisições do cliente.
 
-### 3. Iniciar o Controlador
+### 4. Iniciar o Controlador
 
 Para rodá-lo, execute:
 
@@ -41,7 +51,7 @@ node controller/controller.js
 
 O controlador se conectará ao broker MQTT e, ao receber os dados de temperatura, tomará decisões (ligar/desligar o aquecedor) com base na lógica definida.
 
-### 4. Iniciar o Controlador Reserva
+### 5. Iniciar o Controlador Reserva
 
 Para rodá-lo, execute:
 
@@ -51,7 +61,7 @@ node controller/backupController.js
 
 O controlador reserva se conectará ao broker MQTT e, ao receber os dados de temperatura, tomará decisões (ligar/desligar o aquecedor) com base na lógica definida. Ele só será ativado caso o controlador principal esteja desligado.
 
-### 5. Iniciar o Sensor
+### 6. Iniciar o Sensor
 
 Para rodá-lo, abra o terminal e execute:
 
@@ -61,11 +71,11 @@ node sensor/sensor.js
 
 O sensor começará a gerar valores de temperatura aleatórios e publicá-los no broker MQTT.
 
-### 6. Abrir o Cliente (Frontend)
+### 7. Abrir o Cliente (Frontend)
 
 Agora, abra o arquivo `client/index.html` e inicie o servidor utilizando a extensão [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer).
 
-### 7. Verificar o Funcionamento
+### 8. Verificar o Funcionamento
 
 - **No Cliente**: No navegador, você verá a temperatura sendo atualizada a cada 1 segundo, e o status do aquecedor (ligado/desligado).
 - **No Sensor**: O sensor deve enviar dados aleatórios de temperatura a cada 5 segundos.
@@ -83,7 +93,7 @@ Agora, abra o arquivo `client/index.html` e inicie o servidor utilizando a exten
 
 ## Variáveis de Ambiente
 
-As variáveis de configuração para o MQTT podem ser definidas no arquivo `config/mqttConfig.js`. 
+As variáveis de configuração para o MQTT podem ser definidas no arquivo `config/mqttConfig.js`.
 
 ## Banco de Dados
 
