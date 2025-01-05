@@ -10,6 +10,11 @@ const {
   storeTemperature,
   updateHeaterStatus,
 } = require("../database/database");
+const fs = require("fs");
+const { verify } = require("crypto");
+
+// Carregar chave pública
+const publicKey = fs.readFileSync("public_key.pem", "utf8");
 
 let client; // Definindo a variável 'client' aqui
 
@@ -47,11 +52,42 @@ async function initializeController() {
 
       if (topic === mqttTopic) {
         try {
-          const { temperature } = JSON.parse(message.toString());
-          console.log(`Temperatura processada: ${temperature}`);
+          const { message: data, signature } = JSON.parse(message.toString());
 
-          // Armazenar temperatura no banco
-          await storeTemperature(parseFloat(temperature));
+          // Verificar assinatura
+          const isValid = verify(
+            "sha256",
+            Buffer.from(data),
+            publicKey,
+            Buffer.from(signature, "base64")
+          );
+
+          if (!isValid) {
+            throw new Error("Assinatura inválida. Dados comprometidos.");
+          }
+
+          console.log("Assinatura válida:", data);
+
+          // Parse data to extract the actual payload
+          const parsedMessage = JSON.parse(data);
+
+          // Garantir que o valor de temperatura seja um número
+          parsedMessage.temperature = parseFloat(parsedMessage.temperature);
+
+          // Validação básica
+          if (
+            typeof parsedMessage.temperature !== "number" ||
+            parsedMessage.temperature < -9 || // Limite mínimo esperado
+            parsedMessage.temperature > 41 // Limite máximo esperado
+          ) {
+            throw new Error("Valor de temperatura inválido recebido");
+          }
+
+          const { temperature } = parsedMessage;
+          console.log(`Temperatura validada: ${temperature}`);
+
+          // Processamento de dados validos
+          await storeTemperature(temperature);
 
           // Decisão de ligar/desligar o aquecedor
           if (temperature < 15) {
