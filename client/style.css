@@ -6,8 +6,8 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
+  font-family: "Arial", sans-serif;
+  background-color: #e8f5ff; /* Azul claro suave */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -15,43 +15,108 @@ body {
 }
 
 .container {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 300px;
+  display: flex;
+  flex-direction: column; /* Flexbox para disposição vertical */
+  justify-content: space-between; /* Espaçamento entre o conteúdo e o rodapé */
+  align-items: center; /* Centraliza o conteúdo horizontalmente */
+  background-color: #ffffff;
+  padding: 40px 60px; /* Aumentando o padding interno */
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px; /* Aumentando a largura máxima do container */
+  min-height: 450px; /* Aumentando a altura mínima */
+  text-align: center;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.header {
+  width: 100%;
   text-align: center;
 }
 
-h1 {
-  font-size: 24px;
+.header h1 {
+  font-size: 30px;
+  color: #333;
   margin-bottom: 20px;
+  line-height: 1.2;
+  white-space: nowrap; /* Impede a quebra de linha */
+  overflow: hidden;
+}
+
+.main {
+  display: flex;
+  flex-direction: column; /* Alinha as informações em coluna */
+  align-items: center; /* Centraliza os itens no centro */
+  justify-content: center; /* Garante que o conteúdo ocupe a área central */
+  flex-grow: 1; /* Garante que a seção central ocupe o espaço disponível */
 }
 
 .status {
-  margin-bottom: 20px;
+  margin-bottom: 30px; /* Aumentando o espaçamento entre os itens de status */
 }
 
-.status p {
-  font-size: 18px;
+.status-item {
+  display: flex;
+  align-items: center; /* Alinha os itens verticalmente no centro */
+  justify-content: center; /* Alinha horizontalmente no centro */
+  margin-bottom: 20px; /* Aumentando a margem entre os itens */
 }
 
-.controls button {
-  padding: 10px 20px;
-  margin: 10px;
-  font-size: 16px;
+.status-item i {
+  font-size: 40px; /* Ícones maiores */
+  margin-right: 15px; /* Maior espaçamento entre o ícone e o texto */
+}
+
+.status-item p {
+  font-size: 20px; /* Tamanho da fonte do texto */
+  color: #555;
+  margin: 0;
+}
+
+.controls .button {
+  padding: 16px 36px;
+  font-size: 20px; /* Tamanho do texto aumentado */
   cursor: pointer;
   border: none;
-  background-color: #4caf50;
+  border-radius: 25px;
   color: white;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+  background: linear-gradient(45deg, #4caf50, #45a049);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+  margin-top: 20px; /* Espaço superior entre o botão e as informações */
 }
 
-.controls button:hover {
-  background-color: #45a049;
+.controls .button:hover {
+  background: linear-gradient(45deg, #45a049, #3e8e41);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-.controls button:active {
-  background-color: #3e8e41;
+.controls .button:active {
+  transform: scale(0.95);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.footer {
+  font-size: 14px;
+  color: #666;
+  margin-top: 20px; /* Pequeno espaço entre o conteúdo e o rodapé */
+  width: 100%;
+  text-align: center;
+}
+
+.footer p {
+  font-size: 14px;
+  color: #888;
 }
