@@ -73,17 +73,60 @@ async function sendCommand(command) {
   }
 }
 
+// Função para alternar o aquecedor
+async function toggleHeater() {
+  try {
+    // Obter o status atual
+    const response = await fetch("http://localhost:3000/heater-status");
+    const data = await response.json();
+
+    // Determine o novo comando baseado no status atual
+    const newCommand = data.status === "on" ? "off" : "on";
+
+    // Enviar o comando
+    await sendCommand(newCommand);
+
+    // Atualizar a interface com o novo status
+    await getHeaterStatus();
+  } catch (error) {
+    console.error("Erro ao alternar o aquecedor", error);
+  }
+}
+
+// Atualiza o botão com base no status do aquecedor
+async function updateToggleButton() {
+  try {
+    const response = await fetch("http://localhost:3000/heater-status");
+    const data = await response.json();
+    const button = document.getElementById("toggle-heater");
+
+    if (data.status === "on") {
+      button.innerText = "Desligar Aquecedor";
+      button.style.background = "linear-gradient(45deg, #f44336, #d32f2f)"; // Vermelho
+    } else {
+      button.innerText = "Ligar Aquecedor";
+      button.style.background = "linear-gradient(45deg, #4caf50, #45a049)"; // Verde
+    }
+  } catch (error) {
+    console.error("Erro ao atualizar botão de alternância", error);
+  }
+}
+
 // Função para inicializar os dados da página
 async function initializePage() {
   await getHeaterStatus();
   await getTemperature();
 }
 
-// Chamar as funções para atualizar o status e temperatura periodicamente
+// Atualize a interface regularmente
 setInterval(() => {
   getHeaterStatus();
   getTemperature();
-}, 5000); // Atualizar a cada 5 segundos
+  updateToggleButton();
+}, 100);
 
-// Chamar a função para inicializar a página
-window.onload = initializePage;
+// Inicializa a página
+window.onload = async function () {
+  await initializePage();
+  await updateToggleButton();
+};
