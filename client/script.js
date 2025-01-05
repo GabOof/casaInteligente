@@ -57,7 +57,6 @@ async function getTemperature() {
   }
 }
 
-// Função para enviar o comando para ligar/desligar o aquecedor
 async function sendCommand(command) {
   try {
     const response = await fetch("http://localhost:3000/heater-command", {
