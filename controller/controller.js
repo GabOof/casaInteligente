@@ -11,19 +11,21 @@ const {
   updateHeaterStatus,
 } = require("../database/database");
 
-let client; // Definindo a variável 'client' aqui.
+let client; // Definindo a variável 'client' aqui
 
 async function initializeController() {
   try {
-    // Certifique-se de que a conexão ao banco de dados foi estabelecida primeiro.
+    // Conectar ao banco de dados
     await connectToDb();
     console.log("Banco de dados conectado");
 
-    // Inicializando o cliente MQTT depois de garantir que o banco está conectado
+    // Inicializando o cliente MQTT
     client = mqtt.connect(mqttHost);
 
     client.on("connect", () => {
-      console.log("Controlador conectado ao broker MQTT");
+      console.log("Controlador principal conectado ao broker MQTT");
+
+      // Inscreve-se no tópico para receber as mensagens do cliente
       client.subscribe(mqttTopic, (err) => {
         if (err) {
           console.error(`Erro ao se inscrever no tópico ${mqttTopic}:`, err);
@@ -33,12 +35,20 @@ async function initializeController() {
       });
     });
 
+    // Enviar heartbeat a cada 10 segundos para informar que o controlador principal está ativo
+    setInterval(() => {
+      client.publish(heartbeatTopic, "alive");
+      console.log("Heartbeat enviado pelo controlador principal.");
+    }, 1000); // A cada 10 segundos
+
+    // Escutando as mensagens do tópico
     client.on("message", async (topic, message) => {
+      console.log(`Mensagem recebida no tópico ${topic}: ${message}`);
 
       if (topic === mqttTopic) {
         try {
           const { temperature } = JSON.parse(message.toString());
-          console.log(`Temperatura recebida: ${temperature}`);
+          console.log(`Temperatura processada: ${temperature}`);
 
           // Armazenar temperatura no banco
           await storeTemperature(parseFloat(temperature));
@@ -58,15 +68,11 @@ async function initializeController() {
         }
       }
     });
-
-    // Enviando heartbeat para o controlador de backup
-    setInterval(() => {
-      client.publish(heartbeatTopic, "alive");
-    }, 1000); // Envia a cada 1 segundo
   } catch (error) {
-    console.error("Erro ao inicializar controlador", error);
+    console.error("Erro ao inicializar controlador principal", error);
     process.exit(1);
   }
 }
 
+// Inicializa o controlador principal
 initializeController();
