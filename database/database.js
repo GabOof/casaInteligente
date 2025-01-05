@@ -22,7 +22,6 @@ async function storeTemperature(temperature) {
       value: temperature,
       timestamp: new Date(),
     });
-    console.log(`Temperatura registrada: ${temperature}`);
   } catch (error) {
     console.error("Erro ao registrar temperatura", error);
   }
@@ -32,7 +31,6 @@ async function updateHeaterStatus(status) {
   try {
     const collection = db.collection("heaters"); // Aqui você acessa a coleção
     await collection.insertOne({ status, timestamp: new Date() });
-    console.log(`Status do aquecedor atualizado para: ${status}`);
   } catch (error) {
     console.error("Erro ao atualizar status do aquecedor", error);
   }

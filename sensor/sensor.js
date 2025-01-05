@@ -22,8 +22,5 @@ client.on("connect", () => {
 
     // Publicar mensagem e assinatura
     client.publish(mqttTopic, JSON.stringify({ message, signature }));
-    console.log(
-      `Temperatura publicada: ${temperature}, assinatura: ${signature}`
-    );
   }, 5000); // Publica a cada 5 segundos
 });

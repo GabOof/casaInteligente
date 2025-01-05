@@ -65,7 +65,6 @@ async function sendCommand(command) {
       body: JSON.stringify({ command }),
     });
     const data = await response.json();
-    console.log("Comando enviado:", data);
     // Atualiza o status após enviar o comando
     getHeaterStatus();
   } catch (error) {

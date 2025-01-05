@@ -24,13 +24,10 @@ let backupControllerStarted = false; // Flag para verificar se o backup foi inic
 // Função de inicialização do backup controlador
 async function initializeBackupController() {
   if (backupControllerStarted) {
-    console.log("Backup controlador já foi iniciado.");
     return; // Evita reiniciar o controlador de backup
   }
 
   try {
-    console.log("Backup controlador iniciado");
-
     // Conectar ao banco de dados
     await connectToDb();
     console.log("Banco de dados conectado");
@@ -45,16 +42,12 @@ async function initializeBackupController() {
       client.subscribe(mqttTopic, (err) => {
         if (err) {
           console.error(`Erro ao se inscrever no tópico ${mqttTopic}:`, err);
-        } else {
-          console.log(`Inscrito com sucesso no tópico ${mqttTopic}`);
         }
       });
     });
 
     // Escutando as mensagens dos tópicos
     client.on("message", async (topic, message) => {
-      console.log(`Mensagem recebida no tópico ${topic}: ${message}`);
-
       // Processando a temperatura apenas se o controlador principal estiver inativo
       if (topic === mqttTopic && !isMainControllerAlive) {
         try {
@@ -72,8 +65,6 @@ async function initializeBackupController() {
             throw new Error("Assinatura inválida. Dados comprometidos.");
           }
 
-          console.log("Assinatura válida:", data);
-
           // Parse data to extract the actual payload
           const parsedMessage = JSON.parse(data);
 
@@ -90,7 +81,6 @@ async function initializeBackupController() {
           }
 
           const { temperature } = parsedMessage;
-          console.log(`Temperatura validada: ${temperature}`);
 
           // Processamento de dados validos
           await storeTemperature(temperature);
@@ -99,11 +89,9 @@ async function initializeBackupController() {
           if (temperature < 15) {
             await updateHeaterStatus("on");
             client.publish(heaterTopic, "on");
-            console.log("Aquecedor ligado");
           } else if (temperature >= 22) {
             await updateHeaterStatus("off");
             client.publish(heaterTopic, "off");
-            console.log("Aquecedor desligado");
           }
         } catch (error) {
           console.error("Erro ao processar mensagem MQTT:", error);
@@ -138,8 +126,6 @@ function checkMainControllerHealth() {
     heartbeatClient.subscribe(heartbeatTopic, (err) => {
       if (err) {
         console.error(`Erro ao se inscrever no tópico ${heartbeatTopic}:`, err);
-      } else {
-        console.log(`Inscrito com sucesso no tópico ${heartbeatTopic}`);
       }
     });
   });
@@ -149,7 +135,6 @@ function checkMainControllerHealth() {
       if (message.toString() === "alive") {
         isMainControllerAlive = true; // O controlador principal está ativo
         mainControllerFailureTime = null; // Resetando o tempo de falha
-        console.log("Heartbeat recebido. Controlador principal está ativo.");
       }
     }
   });
@@ -161,13 +146,9 @@ function checkMainControllerHealth() {
       if (!mainControllerFailureTime) {
         mainControllerFailureTime = Date.now();
       } else if (Date.now() - mainControllerFailureTime > 1000) {
-        console.log(
-          "Controlador principal inativo há mais de 30 segundos. Iniciando o backup."
-        );
         initializeBackupController(); // Inicializa o backup se o principal falhar
       }
     } else {
-      console.log("Controlador principal ativo, aguardando falha.");
       isMainControllerAlive = false; // Reseta a flag após cada intervalo
     }
   }, 1000); // Verifica a cada 1 segundo
