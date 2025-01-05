@@ -39,7 +39,7 @@ async function initializeController() {
     setInterval(() => {
       client.publish(heartbeatTopic, "alive");
       console.log("Heartbeat enviado pelo controlador principal.");
-    }, 1000); // A cada 10 segundos
+    }, 1000); // A cada 1 segundos
 
     // Escutando as mensagens do tópico
     client.on("message", async (topic, message) => {
@@ -54,7 +54,7 @@ async function initializeController() {
           await storeTemperature(parseFloat(temperature));
 
           // Decisão de ligar/desligar o aquecedor
-          if (temperature < 18) {
+          if (temperature < 15) {
             await updateHeaterStatus("on");
             client.publish(heaterTopic, "on");
             console.log("Aquecedor ligado");
