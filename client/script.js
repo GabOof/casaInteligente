@@ -1,131 +1,134 @@
 // Função para obter o status do aquecedor
 async function getHeaterStatus() {
   try {
-    const response = await fetch("http://localhost:3000/heater-status");
-    const data = await response.json();
-    let statusText = "Desconhecido";
-    let heaterEmoji = "🔴"; // Padrão para desligado
+    const response = await fetch("http://localhost:3000/heater-status"); // Faz a requisição para obter o status
+    const data = await response.json(); // Converte a resposta para formato JSON
+    let statusText = "Desconhecido"; // Valor padrão do status
+    let heaterEmoji = "🔴"; // Emoji padrão para aquecedor desligado
 
     if (data.status) {
       if (data.status === "on") {
-        statusText = "Ligado";
-        heaterEmoji = "🟢"; // Emojizinho para aquecedor ligado
+        statusText = "Ligado"; // Se aquecedor estiver ligado
+        heaterEmoji = "🟢"; // Emoji para aquecedor ligado
       } else {
-        statusText = "Desligado";
-        heaterEmoji = "🔴"; // Emojizinho para aquecedor desligado
+        statusText = "Desligado"; // Se aquecedor estiver desligado
+        heaterEmoji = "🔴"; // Emoji para aquecedor desligado
       }
     }
 
-    // Atualiza o texto do status do aquecedor com o emoji
+    // Atualiza o texto do status do aquecedor com o emoji correspondente
     document.getElementById(
       "heater-status"
     ).innerText = `${statusText} ${heaterEmoji}`;
   } catch (error) {
-    console.error("Erro ao obter o status do aquecedor", error);
+    console.error("Erro ao obter o status do aquecedor", error); // Captura erros caso a requisição falhe
   }
 }
 
 // Função para obter a temperatura
 async function getTemperature() {
   try {
-    const response = await fetch("http://localhost:3000/temperature");
-    const data = await response.json();
-    let temperatureText = "--";
-    let temperatureEmoji = "❄️"; // Padrão para floco de neve (temperaturas abaixo de 18)
+    const response = await fetch("http://localhost:3000/temperature"); // Faz a requisição para obter a temperatura
+    const data = await response.json(); // Converte a resposta para formato JSON
+    let temperatureText = "--"; // Valor padrão para temperatura
+    let temperatureEmoji = "❄️"; // Emoji padrão para floco de neve (temperaturas abaixo de 18)
 
     if (data.temperature !== null) {
-      const temperature = parseFloat(data.temperature);
+      const temperature = parseFloat(data.temperature); // Converte a temperatura para número de ponto flutuante
 
+      // Verifica em que faixa de temperatura o valor se encaixa
       if (temperature >= 22) {
-        temperatureText = `${temperature.toFixed(2)}ºC`;
-        temperatureEmoji = "☀️"; // Emojizinho para temperatura acima de 22°C (sol)
+        temperatureText = `${temperature.toFixed(2)}ºC`; // Temperatura alta (acima de 22°C)
+        temperatureEmoji = "☀️"; // Emoji para temperatura quente (sol)
       } else if (temperature < 18) {
-        temperatureText = `${temperature.toFixed(2)}ºC`;
-        temperatureEmoji = "❄️"; // Emojizinho para temperatura abaixo de 18°C (neve)
+        temperatureText = `${temperature.toFixed(2)}ºC`; // Temperatura fria (abaixo de 18°C)
+        temperatureEmoji = "❄️"; // Emoji para temperatura muito fria (neve)
       } else {
-        temperatureText = `${temperature.toFixed(2)}ºC`;
-        temperatureEmoji = "🌤️"; // Emojizinho para temperaturas entre 18 e 22°C (temperatura amena)
+        temperatureText = `${temperature.toFixed(2)}ºC`; // Temperatura amena (entre 18°C e 22°C)
+        temperatureEmoji = "🌤️"; // Emoji para temperatura amena (sol e nuvem)
       }
     }
 
-    // Atualiza o texto da temperatura com o emoji
+    // Atualiza o texto da temperatura com o emoji correspondente
     document.getElementById(
       "temperature"
     ).innerText = `${temperatureText} ${temperatureEmoji}`;
   } catch (error) {
-    console.error("Erro ao obter a temperatura", error);
+    console.error("Erro ao obter a temperatura", error); // Captura erros caso a requisição falhe
   }
 }
 
+// Função para enviar um comando para controlar o aquecedor
 async function sendCommand(command) {
   try {
     const response = await fetch("http://localhost:3000/heater-command", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ command }),
+      method: "POST", // Envia a requisição POST
+      headers: { "Content-Type": "application/json" }, // Define o tipo de conteúdo como JSON
+      body: JSON.stringify({ command }), // Envia o comando em formato JSON
     });
-    const data = await response.json();
+    const data = await response.json(); // Converte a resposta para formato JSON
     // Atualiza o status após enviar o comando
     getHeaterStatus();
   } catch (error) {
-    console.error("Erro ao enviar o comando", error);
+    console.error("Erro ao enviar o comando", error); // Captura erros caso a requisição falhe
   }
 }
 
-// Função para alternar o aquecedor
+// Função para alternar o estado do aquecedor (ligar/desligar)
 async function toggleHeater() {
   try {
-    // Obter o status atual
+    // Obtém o status atual do aquecedor
     const response = await fetch("http://localhost:3000/heater-status");
     const data = await response.json();
 
-    // Determine o novo comando baseado no status atual
+    // Determina o novo comando baseado no status atual
     const newCommand = data.status === "on" ? "off" : "on";
 
-    // Enviar o comando
+    // Envia o novo comando para alternar o estado
     await sendCommand(newCommand);
 
-    // Atualizar a interface com o novo status
+    // Atualiza a interface com o novo status
     await getHeaterStatus();
   } catch (error) {
-    console.error("Erro ao alternar o aquecedor", error);
+    console.error("Erro ao alternar o aquecedor", error); // Captura erros caso a requisição falhe
   }
 }
 
-// Atualiza o botão com base no status do aquecedor
+// Função para atualizar o botão de controle do aquecedor
 async function updateToggleButton() {
   try {
-    const response = await fetch("http://localhost:3000/heater-status");
+    const response = await fetch("http://localhost:3000/heater-status"); // Faz a requisição para obter o status atual
     const data = await response.json();
-    const button = document.getElementById("toggle-heater");
+    const button = document.getElementById("toggle-heater"); // Obtém o botão de controle
 
+    // Atualiza o texto e estilo do botão baseado no status do aquecedor
     if (data.status === "on") {
-      button.innerText = "Desligar Aquecedor";
-      button.style.background = "linear-gradient(45deg, #f44336, #d32f2f)"; // Vermelho
+      button.innerText = "Desligar Aquecedor"; // Se aquecedor estiver ligado
+      button.style.background = "linear-gradient(45deg, #f44336, #d32f2f)"; // Estilo do botão (vermelho)
     } else {
-      button.innerText = "Ligar Aquecedor";
-      button.style.background = "linear-gradient(45deg, #4caf50, #45a049)"; // Verde
+      button.innerText = "Ligar Aquecedor"; // Se aquecedor estiver desligado
+      button.style.background = "linear-gradient(45deg, #4caf50, #45a049)"; // Estilo do botão (verde)
     }
   } catch (error) {
-    console.error("Erro ao atualizar botão de alternância", error);
+    console.error("Erro ao atualizar botão de alternância", error); // Captura erros caso a requisição falhe
   }
 }
 
 // Função para inicializar os dados da página
 async function initializePage() {
-  await getHeaterStatus();
-  await getTemperature();
+  await getHeaterStatus(); // Obtém o status inicial do aquecedor
+  await getTemperature(); // Obtém a temperatura inicial
 }
 
-// Atualize a interface regularmente
+// Atualiza a interface regularmente
 setInterval(() => {
-  getHeaterStatus();
-  getTemperature();
-  updateToggleButton();
+  getHeaterStatus(); // Atualiza o status do aquecedor
+  getTemperature(); // Atualiza a temperatura
+  updateToggleButton(); // Atualiza o botão de controle
 }, 100);
 
-// Inicializa a página
+// Inicializa a página assim que a janela for carregada
 window.onload = async function () {
-  await initializePage();
-  await updateToggleButton();
+  await initializePage(); // Inicializa os dados da página
+  await updateToggleButton(); // Atualiza o botão de controle
 };
