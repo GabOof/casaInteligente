@@ -1,36 +1,40 @@
+// Importa o cliente MQTT e outras dependências
 const mqtt = require("mqtt");
 const {
-  mqttHost,
-  mqttTopic,
-  heaterTopic,
-  heartbeatTopic,
+  mqttHost, // Host do broker MQTT
+  mqttTopic, // Tópico de temperatura
+  heaterTopic, // Tópico do aquecedor
+  heartbeatTopic, // Tópico de heartbeat
 } = require("../config/mqttConfig");
 const {
-  connectToDb,
-  storeTemperature,
-  updateHeaterStatus,
+  connectToDb, // Função para conectar ao banco de dados
+  storeTemperature, // Função para armazenar temperatura no banco
+  updateHeaterStatus, // Função para atualizar o status do aquecedor
 } = require("../database/database");
 const fs = require("fs");
 const { verify } = require("crypto");
 
-// Carregar chave pública
+// Carrega a chave pública usada para verificar assinaturas
 const publicKey = fs.readFileSync("public_key.pem", "utf8");
 
-let client; // Definindo a variável 'client' aqui
+// Variável para o cliente MQTT
+let client;
 
+// Função principal para inicializar o controlador
 async function initializeController() {
   try {
-    // Conectar ao banco de dados
+    // Conecta ao banco de dados
     await connectToDb();
     console.log("Banco de dados conectado");
 
-    // Inicializando o cliente MQTT
+    // Conecta ao broker MQTT
     client = mqtt.connect(mqttHost);
 
+    // Evento disparado quando o cliente conecta ao broker
     client.on("connect", () => {
       console.log("Controlador principal conectado ao broker MQTT");
 
-      // Inscreve-se no tópico para receber as mensagens do cliente
+      // Inscreve-se no tópico para receber mensagens de temperatura
       client.subscribe(mqttTopic, (err) => {
         if (err) {
           console.error(`Erro ao se inscrever no tópico ${mqttTopic}:`, err);
@@ -38,18 +42,19 @@ async function initializeController() {
       });
     });
 
-    // Enviar heartbeat a cada 10 segundos para informar que o controlador principal está ativo
+    // Envia um "heartbeat" a cada 1 segundo para indicar que está ativo
     setInterval(() => {
       client.publish(heartbeatTopic, "alive");
-    }, 1000); // A cada 1 segundos
+    }, 1000);
 
-    // Escutando as mensagens do tópico
+    // Escuta mensagens recebidas no broker MQTT
     client.on("message", async (topic, message) => {
       if (topic === mqttTopic) {
         try {
+          // Extrai os dados e a assinatura da mensagem
           const { message: data, signature } = JSON.parse(message.toString());
 
-          // Verificar assinatura
+          // Verifica a assinatura para garantir a integridade dos dados
           const isValid = verify(
             "sha256",
             Buffer.from(data),
@@ -61,27 +66,27 @@ async function initializeController() {
             throw new Error("Assinatura inválida. Dados comprometidos.");
           }
 
-          // Parse data to extract the actual payload
+          // Faz o parsing dos dados para obter o payload
           const parsedMessage = JSON.parse(data);
 
-          // Garantir que o valor de temperatura seja um número
+          // Garante que o valor da temperatura seja numérico
           parsedMessage.temperature = parseFloat(parsedMessage.temperature);
 
-          // Validação básica
+          // Validação básica de temperatura
           if (
             typeof parsedMessage.temperature !== "number" ||
-            parsedMessage.temperature < -9 || // Limite mínimo esperado
-            parsedMessage.temperature > 41 // Limite máximo esperado
+            parsedMessage.temperature < -9 || // Temperatura mínima aceitável
+            parsedMessage.temperature > 41 // Temperatura máxima aceitável
           ) {
             throw new Error("Valor de temperatura inválido recebido");
           }
 
           const { temperature } = parsedMessage;
 
-          // Processamento de dados validos
+          // Armazena a temperatura no banco de dados
           await storeTemperature(temperature);
 
-          // Decisão de ligar/desligar o aquecedor
+          // Lógica para ligar/desligar o aquecedor com base na temperatura
           if (temperature < 15) {
             await updateHeaterStatus("on");
             client.publish(heaterTopic, "on");
@@ -96,9 +101,9 @@ async function initializeController() {
     });
   } catch (error) {
     console.error("Erro ao inicializar controlador principal", error);
-    process.exit(1);
+    process.exit(1); // Encerra o processo em caso de erro grave
   }
 }
 
-// Inicializa o controlador principal
+// Inicializa o controlador principal ao carregar o script
 initializeController();
