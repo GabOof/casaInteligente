@@ -75,8 +75,8 @@ async function initializeController() {
           // Validação básica de temperatura
           if (
             typeof parsedMessage.temperature !== "number" ||
-            parsedMessage.temperature < -9 || // Temperatura mínima aceitável
-            parsedMessage.temperature > 41 // Temperatura máxima aceitável
+            parsedMessage.temperature < -50 || // Temperatura mínima aceitável
+            parsedMessage.temperature > 100 // Temperatura máxima aceitável
           ) {
             throw new Error("Valor de temperatura inválido recebido");
           }
