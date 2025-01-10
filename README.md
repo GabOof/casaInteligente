@@ -1,102 +1,108 @@
 # Casa Inteligente
 
-Este projeto implementa um middleware para um sistema de Casa Inteligente, que utiliza MQTT para comunicação entre sensores, atuadores e controladores. O sistema armazena as temperaturas em um banco de dados MongoDB e controla o estado do aquecedor (ligado ou desligado) com base nos dados recebidos.
+Este projeto implementa um sistema de Casa Inteligente que utiliza MQTT para comunicação entre sensores, atuadores e controladores. As temperaturas são armazenadas em um banco de dados MongoDB, enquanto o estado do aquecedor (ligado ou desligado) é gerenciado com base nos dados recebidos. A solução também oferece um frontend simples para monitoramento e controle manual do sistema.
 
 ## Funcionalidades
 
 - **Sensores**: Publicam a temperatura atual em intervalos regulares (a cada 5 segundos) via MQTT.
-- **Atuadores**: Controlam o aquecedor com base na temperatura. Se a temperatura for inferior a 15°C, o aquecedor é ligado; se for superior a 22°C, ele é desligado.
-- **Middleware**: Recebe dados dos sensores, armazena as temperaturas no banco de dados MongoDB e gerencia os comandos de aquecedor.
-- **Frontend**: Interface web simples que exibe a temperatura atual e o status do aquecedor, além de permitir o controle manual do aquecedor (ligar/desligar).
+- **Atuadores**: Controlam o aquecedor com base na temperatura:
+  - Se a temperatura for inferior a 15°C, o aquecedor é ligado.
+  - Se a temperatura for superior a 22°C, ele é desligado.
+- **Middleware**:
+  - Recebe dados dos sensores via MQTT.
+  - Armazena as temperaturas no banco de dados MongoDB.
+  - Gerencia os comandos para o aquecedor.
+- **Frontend**: Interface web que:
+  - Exibe a temperatura atual e o status do aquecedor.
+  - Permite o controle manual do aquecedor (ligar/desligar).
 
-## Como Rodar
+## Como Configurar e Executar
 
 ### 1. Instalar Dependências do Projeto
 
-Certifique-se de que todas as dependências do projeto estão instaladas corretamente. Navegue até a pasta do seu projeto e execute o comando:
+Certifique-se de que todas as dependências estão instaladas corretamente. Navegue até a pasta do projeto e execute:
 
 ```bash
 npm install
 ```
 
-Isso irá baixar e instalar as dependências listadas no arquivo `package.json`.
+Este comando irá baixar e instalar as dependências listadas no arquivo `package.json`.
 
-### 2. Iniciar script de geração de chaves de segurança
+### 2. Gerar Chaves de Segurança
 
-Para rodar o script, execute:
+Execute o script para gerar as chaves de segurança necessárias para a comunicação segura:
 
 ```bash
 node config/generateKeys.js
 ```
 
-Este script irá gerar as chaves de segurança necessárias para a comunicação segura entre os sistemas.
-
 ### 3. Iniciar o Middleware (Servidor Express)
 
-Para rodar o servidor Express, execute:
+Inicie o servidor Express com o comando:
 
 ```bash
 node middleware/server.js
 ```
 
-O servidor Express será iniciado na porta 3000 e estará pronto para receber requisições do cliente.
+O servidor estará disponível na porta 3000 para receber requisições do cliente.
 
-### 4. Iniciar o Controlador
+### 4. Iniciar o Controlador Principal
 
-Para rodá-lo, execute:
+Execute o controlador principal, que tomará decisões com base nos dados recebidos:
 
 ```bash
 node controller/controller.js
 ```
 
-O controlador se conectará ao broker MQTT e, ao receber os dados de temperatura, tomará decisões (ligar/desligar o aquecedor) com base na lógica definida.
-
 ### 5. Iniciar o Controlador Reserva
 
-Para rodá-lo, execute:
+O controlador reserva serve como backup caso o controlador principal esteja indisponível. Para executá-lo:
 
 ```bash
 node controller/backupController.js
 ```
 
-O controlador reserva se conectará ao broker MQTT e, ao receber os dados de temperatura, tomará decisões (ligar/desligar o aquecedor) com base na lógica definida. Ele só será ativado caso o controlador principal esteja desligado.
-
 ### 6. Iniciar o Sensor
 
-Para rodá-lo, abra o terminal e execute:
+Para simular dados de temperatura, execute o sensor:
 
 ```bash
 node sensor/sensor.js
 ```
 
-O sensor começará a gerar valores de temperatura aleatórios e publicá-los no broker MQTT.
+### 7. Iniciar o Frontend
 
-### 7. Abrir o Cliente (Frontend)
+Abra o arquivo `client/index.html` em seu navegador utilizando a extensão [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer). O frontend irá exibir:
 
-Agora, abra o arquivo `client/index.html` e inicie o servidor utilizando a extensão [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer).
+- A temperatura atualizada a cada 1 segundo.
+- O status do aquecedor.
+- Opção para controle manual do aquecedor.
 
-### 8. Verificar o Funcionamento
+## Tecnologias Utilizadas
 
-- **No Cliente**: No navegador, você verá a temperatura sendo atualizada a cada 1 segundo, e o status do aquecedor (ligado/desligado).
-- **No Sensor**: O sensor deve enviar dados aleatórios de temperatura a cada 5 segundos.
-- **No Controlador**: O controlador deve receber as mensagens de temperatura e ligar/desligar o aquecedor conforme a lógica que foi implementada.
-- **No Banco de Dados**: O banco de dados MongoDB deve armazenar a temperatura recebida e o status do aquecedor.
+- **MQTT**: Para comunicação entre sensores, atuadores e middleware.
+- **MongoDB**: Para armazenamento das temperaturas e status do aquecedor.
+- **Node.js**: Para execução do middleware e controladores.
+- **Express**: Framework para criação do servidor web.
+- **HTML/CSS/JavaScript**: Para criação da interface do cliente.
+- **CORS**: Para permitir acesso do cliente ao servidor Express.
 
-## Tecnologias
+## Configuração de Variáveis de Ambiente
 
-- **MQTT**: Para comunicação entre sensores, atuadores e o middleware.
-- **MongoDB**: Para armazenar as temperaturas recebidas e o status do aquecedor.
-- **Node.js**: Plataforma para executar o middleware.
-- **Express**: Framework para criar o servidor que intermedeia a comunicação entre o cliente e os sistemas.
-- **HTML/CSS/JavaScript**: Para criar a interface do cliente.
-- **CORS**: Para permitir que o cliente acesse o servidor Express.
-
-## Variáveis de Ambiente
-
-As variáveis de configuração para o MQTT podem ser definidas no arquivo `config/mqttConfig.js`.
+As configurações de MQTT podem ser ajustadas no arquivo `config/mqttConfig.js`. Certifique-se de configurar os detalhes corretos para conexão ao broker MQTT.
 
 ## Banco de Dados
 
-O MongoDB será utilizado para armazenar os dados de temperatura e o status do aquecedor. O banco de dados padrão é `casaInteligente`, e as coleções são `temperatures` e `heaters`.
+O MongoDB é utilizado para armazenar dados de:
 
-Certifique-se de ter o MongoDB em execução na sua máquina antes de iniciar o middleware.
+- **Temperatura**: Recebida dos sensores.
+- **Status do Aquecedor**: Ligado ou desligado.
+
+### Detalhes do Banco de Dados
+
+- **Nome do Banco**: `casaInteligente`
+- **Coleções**:
+  - `temperatures`
+  - `heaters`
+
+Certifique-se de que o MongoDB está em execução antes de iniciar o middleware.
